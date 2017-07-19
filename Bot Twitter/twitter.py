@@ -3,15 +3,15 @@ import tweepy, datetime, time
 #localizacao = "-23.5062,-47.4559,17km" #coordenada de Sorocaba
 localizacao = "-22.4249222,-46.939116,17km" #coordenada de Mogi Mirim para teste
 
+#------------------------------------------------------------------------------------------------------
 
 hashtagsEmergenciais = ["enchente", "terremoto", "tempestade"]
 
 indiciosTerremoto = ["tremores", "tremor"]
-indiciosTempestade = ["chuva forte", "ficando AND escuro", "aumento AND temperatura", "aumentando AND temperatura", "ficando AND quente", "escuro AND derrepente", "quente AND derrepente"]
+indiciosTempestade = ["chuva forte", "ficando AND escuro", "aumento AND temperatura", "aumentando AND temperatura", "ficando AND quente", "escuro AND derrepente", "quente AND derrepente", "nublado", "muitas AND nuvens", "muita AND nuvem"]
 hashtagsNormais = indiciosTerremoto + indiciosTempestade
 
-
-
+#------------------------------------------------------------------------------------------------------
 
 def publicarTweet (api, hashtag, emergencia):
 	if emergencia == True:
@@ -22,8 +22,16 @@ def publicarTweet (api, hashtag, emergencia):
 		
 		tweet = tweet + str(datetime.datetime.now())
 	else:
-		tweet = "Possivelmente irá ocorrer " + retornarEvento(hashtag) + " em Sorocaba. Tome cuidado! " + str(datetime.datetime.now())
+		tweet = "Há chances de ocorrer " + retornarEvento(hashtag) + " em Sorocaba. Tome cuidado! "
+		
+		if retornarEvento(hashtag) == "tempestade":
+			tweet = tweet + "Por causa da tempestade, pode haver enchentes. "
+		
+		tweet = tweet + str(datetime.datetime.now())
+
 	status = api.update_status(status=tweet)
+
+#------------------------------------------------------------------------------------------------------
 
 def retornarEvento (hashtag):
 	if hashtag in indiciosTerremoto:
@@ -33,6 +41,8 @@ def retornarEvento (hashtag):
 	else:
 		return hashtag
 
+#------------------------------------------------------------------------------------------------------
+
 def retornarEventoSemAcentos (hashtag):
 	if hashtag in indiciosTerremoto:
 		return "terremoto"
@@ -40,6 +50,8 @@ def retornarEventoSemAcentos (hashtag):
 		return "tempestade"
 	else:
 		return hashtag
+
+#------------------------------------------------------------------------------------------------------
 
 def verificarEmergencia (api, hashtags, ultimaOcorrencia):
 	for hashtag in hashtags:
@@ -50,6 +62,8 @@ def verificarEmergencia (api, hashtags, ultimaOcorrencia):
 				ultimaOcorrencia[hashtag] = tweet.created_at-datetime.timedelta(hours=3)
 				print (ultimaOcorrencia[hashtag] + datetime.timedelta(hours=8))
 				publicarTweet (api, hashtag, True)
+
+#------------------------------------------------------------------------------------------------------
 
 def verificar (api, hashtags, ultimaOcorrencia, qtdeMin):
 	qtde = {}
@@ -80,10 +94,14 @@ def verificar (api, hashtags, ultimaOcorrencia, qtdeMin):
 			
 			publicarTweet (api, hashtag, False)
 
+#------------------------------------------------------------------------------------------------------
+
 def get_api(cfg):
 	auth = tweepy.OAuthHandler(cfg['consumer_key'], cfg['consumer_secret'])
 	auth.set_access_token(cfg['access_token'], cfg['access_token_secret'])
 	return tweepy.API(auth)
+
+#------------------------------------------------------------------------------------------------------
 
 def main():
 	# Fill in the values noted in previous step here
